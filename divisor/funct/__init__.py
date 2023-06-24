@@ -17,7 +17,7 @@ def divide_word(word: str) -> str:
         syl_word = 'e-xem-plo'
     """
 
-    syllables = get_syllables(word)
+    syllables = get_syllables(word.lower())
     syl_word = '-'.join(syllables)
     return syl_word
 
@@ -36,7 +36,7 @@ def count_syllables(word: str) -> int:
         len(syllables) = 3
     """
 
-    syllables = get_syllables(word)
+    syllables = get_syllables(word.lower())
     return len(syllables)
 
 
@@ -100,7 +100,7 @@ def get_syllables(word: str) -> list[str]:
         if syllables == []:
             syllables.append(word)
     else:
-        subclasses = {'amor': Amor(), 'exemplo': Exemplo(), 'pneumoultramicroscopicossilicovulcanoconiótico': Pneumoultramicroscopicossilicovulcanoconiotico()}
+        subclasses = {'amor': Amor(), 'exemplo': Exemplo(), 'otorrinolaringologista': Otorrinolaringologista(), 'pneumoultramicroscopicossilicovulcanoconiótico': Pneumoultramicroscopicossilicovulcanoconiotico()}
         wrong_word = subclasses[word] if word in subclasses.keys() else Other()
         syllables = wrong_word.fix()
 
@@ -155,6 +155,25 @@ class Exemplo(PalavraErrada):
         """
 
         return ['e', 'xem', 'plo']
+
+
+class Otorrinolaringologista(PalavraErrada):
+    """
+    The subclass of the PalavraErrada class
+    that fixes the syllables of the word 'otorrinolaringologista'.
+    """
+
+    def fix(self) -> list[str]:
+        """
+        Fixes the syllables of the
+        word 'otorrinolaringologista'.
+
+        Returns:
+            A list of strings containing the syllables
+            of the word 'otorrinolaringologista'.
+        """
+
+        return ['o', 'tor', 'ri', 'no', 'la', 'rin', 'go', 'lo', 'gis', 'ta']
 
 
 class Pneumoultramicroscopicossilicovulcanoconiotico(PalavraErrada):
