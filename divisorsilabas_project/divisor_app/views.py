@@ -1,19 +1,24 @@
 from django.conf import settings
 from .analyzer import WordAnalyzer
-from django.shortcuts import render
 from django.core.mail import send_mail
 from .forms import WordForm, FeedbackForm
+from django.shortcuts import render, redirect
 
 
 def main_view(request):
     word_form = WordForm()
     feedback_form = FeedbackForm()
+
+    result = request.session.pop('result', None)
+    error_messages = request.session.pop('error_messages', None)
+    feedback_success = request.session.pop('feedback_success', None)
+
     context = {
-        'result': None,
+        'result': result,
         'word_form': word_form,
-        'error_messages': None,
-        'feedback_success': None,
         'feedback_form': feedback_form,
+        'error_messages': error_messages,
+        'feedback_success': feedback_success,
     }
 
     if request.method == 'POST':
@@ -21,15 +26,20 @@ def main_view(request):
             word_form = WordForm(request.POST)
             if word_form.is_valid():
                 a = WordAnalyzer(word_form.cleaned_data['word'])
-                context['result'] = {
+                request.session['result'] = {
                     'word': a.word,
+                    'tonicity': a.word_stress(),
                     'syl_word': a.get_syllables(),
                     'num_letters': a.count_letters(),
-                    'num_syllables': a.count_syllables()
+                    'num_phonemes': a.count_phonemes(),
+                    'vow_clusters': a.vowel_clusters(),
+                    'reversed': a.syllables_backwards(),
+                    'num_syllables': a.count_syllables(),
+                    'con_clusters': a.consonant_clusters(),
                 }
             else:
-                if 'word' in word_form.errors:
-                    context['error_messages'] = word_form.errors['word']
+                request.session['error_messages'] = word_form.errors.get('word')
+            return redirect('main-view')
 
         elif 'submit_feedback' in request.POST:
             feedback_form = FeedbackForm(request.POST)
@@ -41,7 +51,7 @@ def main_view(request):
                     from_email=settings.EMAIL_HOST_USER,
                     recipient_list=['jgabrielj.games77@gmail.com'],
                     fail_silently=False,
-                ); context['feedback_success'] = "Obrigado pelo seu feedback!"
-                # Consertar o problema de reenvio de e-mail ao atualizar a página
+                ); request.session['feedback_success'] = "Obrigado pelo seu feedback!"
+            return redirect('main-view')
 
     return render(request, 'divisor_app/index.html', context)

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-import os
+import os, json
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -24,12 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-77cmt8e1x!9s1yxrpwiic!#1bq)qt-^k3f#$(h3e5f$3p@ab4r'
+SECRET_KEY = os.getenv('SKEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1', # 'www.divisorsilabas.com.br',
+    'localhost', # 'divisorsilabas.com.br'
+]
 
 
 # Application definition
@@ -138,3 +141,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
+
+# Customizable configs
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESTRICTED_WORDS_FILE = os.path.join(PROJECT_ROOT, 'eggs', 'badwords.txt')
+
+EASTER_EGGS = os.getenv('SECRETS')
+if EASTER_EGGS: EASTER_EGGS = json.loads(EASTER_EGGS)

@@ -26,7 +26,7 @@
             }
 
             .container {
-                max-width: 720px;
+                max-width: 750px;
             }
 
             .card {
@@ -68,7 +68,23 @@
                     {% if result %}
                         <p class="h5">Divisão Silábica da Palavra "<strong>{{ result.word|upper }}</strong>":</p>
                         <p class="display-6 my-3">{{ result.syl_word }}</p>
-                        <p class="pt-2">Ela possui {{ result.num_letters }} letras e {{ result.num_syllables }} sílabas.</p>
+                        <ul class="pt-2">
+                            <li><b>{{ result.num_letters.l }} Letras</b> → {{ result.num_letters.v }} vogais e {{ result.num_letters.c }} consoantes</li>
+                            <li><b>{{ result.num_phonemes.ph }} Fonemas</b> → {{ result.num_phonemes.dn }} dígrafos {{ result.num_phonemes.dg }}</li>
+                            <li><b>{{ result.num_syllables.tot }} Sílabas</b> → A palavra é <i>{{ result.num_syllables.cls }}</i></li>
+                            <li><b>Sílaba Tônica "{{ result.tonicity.syl }}"</b> → A palavra é <i>{{ result.tonicity.cls }}</i></li>
+                            <li><b>{{ result.vow_clusters.evn }} Encontros Vocálicos</b> → {{ result.vow_clusters.evd }} ditongos, {{ result.vow_clusters.evt }} tritongos e {{ result.vow_clusters.evh }} hiatos</li>
+                            <li><b>{{ result.con_clusters.ecn }} Encontros Consonantais</b> → {{ result.con_clusters.ecp }} perfeitos e {{ result.con_clusters.eci }} imperfeitos</li>
+                            <li><b>Sílabas ao Contrário</b> → "{{ result.reversed }}"</li>
+                        </ul>
+
+                        {% if not result.syl_word %}
+                            <p class="text-danger pt-2">
+                                A palavra foi encontrada, entretanto não foi possível obter sua divisão silábica.
+                                Isso pode ter ocorrido devido a uma inconsistência no site de origem. Caso o problema
+                                persista, por favor, descreva sua situação no campo abaixo e nos envie seu relatório!
+                            </p>
+                        {% endif %}
                     {% elif error_messages %}
                         <div class="text-danger">
                             {% for message in error_messages %}
@@ -93,6 +109,10 @@
                         {{ feedback_success }}
                     </div>
                 {% endif %}
+
+                <footer class="card-footer text-center pt-4">
+                    Copyright © 2025 <a href="https://github.com/JGabrielJ" target="_blank">João Gabriel</a>. Todos os direitos reservados.
+                </footer>
             </div>
         </div>
     </body>
