@@ -5,7 +5,14 @@ from .analyzer import WordAnalyzer
 from better_profanity import profanity
 
 
-profanity.load_censor_words_from_file(settings.RESTRICTED_WORDS_FILE)
+# Loads the prohibited words to check bad behavior
+try:
+    with open(settings.RESTRICTED_WORDS_FILE, 'r', encoding='utf-8') as f:
+        ptbr_badwords = [line.strip() for line in f.readlines()]
+        profanity.add_censor_words(ptbr_badwords)
+except FileNotFoundError:
+    print(f"Arquivo não encontrado em {settings.RESTRICTED_WORDS_FILE}.")
+
 
 class WordForm(forms.Form):
     word = forms.CharField (
@@ -39,7 +46,7 @@ class WordForm(forms.Form):
         if not a.word_exists():
             raise forms.ValidationError(f"A palavra \"{a.word.upper()}\" não foi encontrada. " \
                                         +"Verifique se ela foi digitada corretamente ou " \
-                                        +"se realmente existe no dicionário brasileiro.")
+                                        +"se existe no dicionário brasileiro.")
 
         return a.word
 
@@ -48,6 +55,6 @@ class FeedbackForm(forms.Form):
     feedback = forms.CharField (
         label='Críticas, problemas na busca ou erros na divisão? Use o campo abaixo para falar conosco! ' \
              +'Pedimos que forneça o máximo de detalhes para que possamos resolver o mais breve possível. ' \
-             +'Esteja ciente de que a aplicação não é perfeita e que pode apresentar inconsistências.',
+             +'Esteja ciente de que a análise não é perfeita e que pode apresentar falhas.',
         max_length=100000, widget=forms.Textarea(attrs={'class': 'form-control mt-2', 'rows': 4})
     )

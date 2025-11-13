@@ -9,12 +9,15 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-import os, json
+import os
+import json
+import dj_database_url
 from pathlib import Path
-from dotenv import load_dotenv
 
 
-load_dotenv()
+if os.path.isfile('.env'):
+    from dotenv import load_dotenv
+    load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,12 +27,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SKEY')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOST', '127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 
 # Application definition
@@ -46,6 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -77,12 +81,17 @@ WSGI_APPLICATION = 'divisorsilabas_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -120,11 +129,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # New folder 'static'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# WhiteNoise
+# https://whitenoise.readthedocs.io/
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -140,15 +154,14 @@ EMAIL_HOST_USER = os.getenv('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
 # Customizable configs
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RESTRICTED_WORDS_FILE = os.path.join(PROJECT_ROOT, 'rotten.txt')
-EASTER_EGGS_FILE = os.path.join(PROJECT_ROOT, 'secrets.json')
+RESTRICTED_WORDS_FILE = BASE_DIR / 'rotten.txt'
+EASTER_EGGS_FILE = BASE_DIR / 'secrets.json'
 
 EASTER_EGGS = {}
 try:
     with open(EASTER_EGGS_FILE, 'r', encoding='utf-8') as f:
         EASTER_EGGS = json.load(f)
 except FileNotFoundError:
-    print("Arquivo não encontrado. A lista estará vazia.")
+    print(f"Arquivo não encontrado em {EASTER_EGGS_FILE}. A lista estará vazia.")
 except json.JSONDecodeError:
-    print("Erro ao decodificar o arquivo. Verifique se o JSON é válido.")
+    print(f"Erro ao decodificar o arquivo em {EASTER_EGGS_FILE}. Verifique se o JSON é válido.")

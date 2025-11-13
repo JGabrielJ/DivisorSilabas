@@ -1,6 +1,7 @@
 # Divisor de Sílabas
 Uma aplicação web feita com Python, Django, Bootstrap, dentre outras bibliotecas que recebe uma palavra qualquer da Língua Portuguesa e retorna sua divisão silábica (fazendo web scraping do site [**dicio.com.br**](https://www.dicio.com.br/)), juntamente com algumas informações adicionais sobre a palavra. O website também possui um sistema de envio de e-mails para quaisquer dúvidas, feedbacks ou erros no funcionamento do programa.
 
-O site pode ser acessado em [**divisor-de-silabas.onrender.com**](https://divisor-de-silabas.onrender.com)
+- O site pode ser acessado em [**divisor-de-silabas.onrender.com ↗**](https://divisor-de-silabas.onrender.com)
+- Caso queira executar o site localmente, primeiro baixe os arquivos e abra um prompt de comando na pasta do projeto. Depois, com o Python instalado, execute `pip install -r requirements.txt` para instalar as dependências necessárias. Em seguida, execute o comando `python manage.py collectstatic` e logo após execute `python manage.py runserver`. Pronto, agora é só aproveitar!
 
-> Nota do Dev: na versão original do projeto, a biblioteca PySimpleGUI foi utilizada para a criação de uma interface gráfica que atendesse aos recursos disponilizados pela aplicação. Entretanto, em detrimento do framework ter sido descontinuado, decidi reviver o programa transferindo-o para o Django. Esta versão pode ser encontrada em [**ProjetosAcademicos**](https://github.com/JGabrielJ/ProjetosAcademicos/tree/main/DivisorSilabas%20(old)).
+> Nota do Dev: na versão original do projeto, a biblioteca PySimpleGUI foi usada para a criação de uma interface gráfica que atendesse aos requisitos da aplicação. Entretanto, em virtude da biblioteca ter sido descontinuada, decidi reviver o programa transferindo-o para o Django. Esta versão pode ser encontrada em [**ProjetosAcademicos**](https://github.com/JGabrielJ/ProjetosAcademicos/tree/main/DivisorSilabas%20(old)).
