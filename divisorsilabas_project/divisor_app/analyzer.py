@@ -11,6 +11,7 @@ class WordAnalyzer():
         Args:
             word (str): Contains the word provided by the user.
         """
+        # Vowels, Consonants & Digraphs
         self.ALPHABET: dict[str, list[str]] = {
             'vow': ['a', 'á', 'à', 'â', 'ã', 'e', 'é', 'ê',
                     'i', 'í', 'o', 'ó', 'ô', 'õ', 'u', 'ú'],
@@ -19,12 +20,15 @@ class WordAnalyzer():
             'dig': ['ch', 'lh', 'nh', 'rr', 'ss', 'sç', 'xs', 'sc', 'xc', 'gu', 'qu']
         }; self.word = word.lower().strip()
 
+        # Formatted Query Word
         nfkd_form = unicodedata.normalize('NFKD', self.word)
         self.query_word = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
 
+        # Referred Page Content
         self.response = requests.get(f'https://www.dicio.com.br/{quote(self.query_word)}/',
                                      headers={'User-Agent': 'Mozilla/5.0'})
 
+        # Special Search Cases
         if self.response.status_code == 200 and ('ç' in self.word or \
         any(e for e in self.ALPHABET['vow'] if e not in ['a', 'e', 'i', 'o', 'u'] and e in self.word)):
             soup = BeautifulSoup(self.response.content, 'html.parser')
@@ -43,6 +47,7 @@ class WordAnalyzer():
                     self.response.content, 'html.parser'
                 ); page_title = soup.find('h1'); n += 1
 
+        # Syllables of the User-Supplied Word
         self.syl_list = self.get_syllables().split('-')
 
     def word_exists(self) -> bool:
@@ -92,10 +97,12 @@ class WordAnalyzer():
         v_total: int = 0; c_total: int = 0
         word_letters: str = self.word.replace('-', '')
 
+        # Count Vowels and Consonants
         for char in word_letters:
             if char in self.ALPHABET['con']: c_total += 1
             if char in self.ALPHABET['vow']: v_total += 1
 
+        # Count Total of Letters
         l_total: int = len(word_letters)
         return {'l': l_total, 'v': v_total, 'c': c_total}
 
@@ -108,9 +115,11 @@ class WordAnalyzer():
         digraphs: list[str] = []
         phonemes = self.count_letters()['l']
 
+        # Silent Letter h
         if self.word.startswith('h'):
             phonemes -= 1
 
+        # Normal Digraphs
         for i, d in enumerate(self.ALPHABET['dig']):
             if d in self.word:
                 qnt = self.word.count(d)
@@ -122,11 +131,13 @@ class WordAnalyzer():
                         if self.word[p+2] in ['e', 'i']:
                             phonemes -= 1; digraphs.append(d) if d not in digraphs else None
 
+        # Vowel Digraphs
         for s in self.syl_list:
             if len(s) > 1 and s[-2] in self.ALPHABET['vow'] and s[-1] in ['m', 'n']:
                 phonemes -= 1; dig = f'{s[-2]}{s[-1]}'
                 digraphs.append(dig) if dig not in digraphs else None
 
+        # x With ks Sound
         for v in self.ALPHABET['vow']:
             ks = f'{v}x'
             if ks in self.word:
@@ -146,6 +157,7 @@ class WordAnalyzer():
         """
         s_class: str = ''; s_total: int = len(self.syl_list)
 
+        # Syllable Count Check
         match s_total:
             case 1:
                 s_class = 'monossílaba'
@@ -169,10 +181,12 @@ class WordAnalyzer():
         ox_terminations: list[str] = ['r', 'l', 'z', 'x', 'i', 'is', 'u', 'us',
                                       'im', 'ins', 'um', 'uns', 'om', 'ons']
 
+        # Monosyllabic Words
         if len(self.syl_list) == 1:
-            stress_syl = ''.join(self.syl_list); stress_cls = 'oxítona'
+            stress_syl = ''.join(self.syl_list); stress_cls = class_list[0]
         else:
             for i, syl in reversed(list(enumerate(self.syl_list))):
+                # Accented Words
                 if any(v for v in self.ALPHABET['vow'] \
                  if v not in ['a', 'e', 'i', 'o', 'u'] and v in syl):
                     stress_syl = syl
@@ -180,13 +194,14 @@ class WordAnalyzer():
                     stress_cls = class_list[pos-1]
                     break
 
+            # Not Accented Words
             if not stress_cls:
                 if any(self.word.endswith(t) for t in ox_terminations):
                     stress_syl = self.syl_list[-1]
-                    stress_cls = 'oxítona'
+                    stress_cls = class_list[0]
                 else:
                     stress_syl = self.syl_list[-2]
-                    stress_cls = 'paroxítona'
+                    stress_cls = class_list[1]
 
         return {'syl': stress_syl, 'cls': stress_cls}
 
@@ -202,14 +217,17 @@ class WordAnalyzer():
         for s in syl:
             temp = s
 
+            # Triphthong Vowel Clusters
             for i in range(0, len(temp)-2):
                 if temp[i] in self.ALPHABET['vow'] and temp[i+1] in self.ALPHABET['vow'] and temp[i+2] in self.ALPHABET['vow']:
                     triphthong += 1; temp = temp[:i] + '###' + temp[i+3:]
 
+            # Diphthong Vowel Clusters
             for j in range(0, len(temp)-1):
                 if temp[j] in self.ALPHABET['vow'] and temp[j+1] in self.ALPHABET['vow']:
                     diphthong += 1
 
+        # Hiatus Vowel Clusters
         for k in range(0, len(syl)-1):
             cluster = f'{syl[k][-1]}{syl[k+1][0]}'
             if cluster[0] in self.ALPHABET['vow'] and cluster[1] in self.ALPHABET['vow']:
@@ -227,6 +245,7 @@ class WordAnalyzer():
         syl = self.syl_list
         perfect, imperfect = 0, 0
 
+        # Perfect Consonant Clusters
         for s in syl:
             for i in range(0, len(s)-1):
                 cluster = f'{s[i]}{s[i+1]}'
@@ -235,6 +254,7 @@ class WordAnalyzer():
                                                          (i+2 >= len(s) or s[i+2] in ['a', 'o', 'u']))):
                     perfect += 1
 
+        # Imperfect Consonant Clusters
         for j in range(0, len(syl)-1):
             cluster = f'{syl[j][-1]}{syl[j+1][0]}'
             if cluster[0] in self.ALPHABET['con'] and cluster[1] in self.ALPHABET['con'] and \

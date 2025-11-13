@@ -19,7 +19,7 @@ class WordForm(forms.Form):
         Raises:
             Http404: If a bad word is found, raises a 404 page.
             forms.ValidationError: If a easter egg is found, raises a message.
-            forms.ValidationError: If a word is not alphabetical, raises a message.
+            forms.ValidationError: If the word is not alphabetical, raises a message.
             forms.ValidationError: If the word not exists in the dictionary, raises a message.
 
         Returns:
@@ -37,15 +37,17 @@ class WordForm(forms.Form):
             raise forms.ValidationError("Por favor, digite apenas letras!")
 
         if not a.word_exists():
-            raise forms.ValidationError(f"A palavra \"{a.word.upper()}\" não foi encontrada." \
-                                        + " Verifique se ela foi digitada corretamente ou" \
-                                        + " se realmente existe no dicionário brasileiro.")
+            raise forms.ValidationError(f"A palavra \"{a.word.upper()}\" não foi encontrada. " \
+                                        +"Verifique se ela foi digitada corretamente ou " \
+                                        +"se realmente existe no dicionário brasileiro.")
 
         return a.word
 
 
 class FeedbackForm(forms.Form):
     feedback = forms.CharField (
-        label='Críticas, problemas na busca ou erros na divisão? Contate-nos!',
-        widget=forms.Textarea(attrs={'class': 'form-control mt-2', 'rows': 4})
+        label='Críticas, problemas na busca ou erros na divisão? Use o campo abaixo para falar conosco! ' \
+             +'Pedimos que forneça o máximo de detalhes para que possamos resolver o mais breve possível. ' \
+             +'Esteja ciente de que a aplicação não é perfeita e que pode apresentar inconsistências.',
+        max_length=100000, widget=forms.Textarea(attrs={'class': 'form-control mt-2', 'rows': 4})
     )

@@ -29,10 +29,7 @@ SECRET_KEY = os.getenv('SKEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    '127.0.0.1', # 'www.divisorsilabas.com.br',
-    'localhost', # 'divisorsilabas.com.br'
-]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOST', '127.0.0.1,localhost').split(',')
 
 
 # Application definition
@@ -144,7 +141,14 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
 # Customizable configs
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RESTRICTED_WORDS_FILE = os.path.join(PROJECT_ROOT, 'eggs', 'badwords.txt')
+RESTRICTED_WORDS_FILE = os.path.join(PROJECT_ROOT, 'rotten.txt')
+EASTER_EGGS_FILE = os.path.join(PROJECT_ROOT, 'secrets.json')
 
-EASTER_EGGS = os.getenv('SECRETS')
-if EASTER_EGGS: EASTER_EGGS = json.loads(EASTER_EGGS)
+EASTER_EGGS = {}
+try:
+    with open(EASTER_EGGS_FILE, 'r', encoding='utf-8') as f:
+        EASTER_EGGS = json.load(f)
+except FileNotFoundError:
+    print("Arquivo não encontrado. A lista estará vazia.")
+except json.JSONDecodeError:
+    print("Erro ao decodificar o arquivo. Verifique se o JSON é válido.")
