@@ -13,7 +13,18 @@ class WordForm(forms.Form):
         widget=forms.TextInput(attrs={'class': 'form-control mt-2', 'placeholder': 'Ex.: divisor'})
     )
 
-    def clean_word(self):
+    def clean_word(self) -> str:
+        """Verifies different cases for the user-supplied word.
+
+        Raises:
+            Http404: If a bad word is found, raises a 404 page.
+            forms.ValidationError: If a easter egg is found, raises a message.
+            forms.ValidationError: If a word is not alphabetical, raises a message.
+            forms.ValidationError: If the word not exists in the dictionary, raises a message.
+
+        Returns:
+            str: If the user-supplied word is ok, returns it.
+        """
         a = WordAnalyzer(self.cleaned_data['word'])
 
         if profanity.contains_profanity(a.word):
