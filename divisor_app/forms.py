@@ -34,7 +34,7 @@ class WordForm(forms.Form):
         a = WordAnalyzer(self.cleaned_data['word'])
 
         if profanity.contains_profanity(a.word):
-            raise forms.ValidationError("Tome cuidado com o que sai da sua boca (*_*)")
+            raise forms.ValidationError("Tome cuidado com o que sai da sua boca (*`_´*)")
 
         if a.word in settings.EASTER_EGGS.keys():
             raise forms.ValidationError(settings.EASTER_EGGS[a.word])
