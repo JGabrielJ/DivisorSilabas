@@ -1,9 +1,35 @@
+import asyncio
 from django.conf import settings
 from .analyzer import WordAnalyzer
 from django.core.mail import send_mail
 from .forms import WordForm, FeedbackForm
 from django.shortcuts import render, redirect
+from django.core.exceptions import ValidationError
 
+
+async def get_word_analysis_data(word: str) -> dict:
+    """Async function to perform word analysis and return a dict with the results.
+
+    Args:
+        word (str): Contains the user-supplied word.
+
+    Returns:
+        dict: Contains the results of the word analysis.
+    """
+    a = WordAnalyzer(word)
+    syllables = await a.get_syllables()
+
+    return {
+        'word': a.word,
+        'syl_word': syllables,
+        'tonicity': a.word_stress(),
+        'num_letters': a.count_letters(),
+        'num_phonemes': a.count_phonemes(),
+        'vow_clusters': a.vowel_clusters(),
+        'reversed': a.syllables_backwards(),
+        'num_syllables': a.count_syllables(),
+        'con_clusters': a.consonant_clusters(),
+    }
 
 def main_view(request):
     word_form = WordForm()
@@ -25,18 +51,12 @@ def main_view(request):
         if 'submit_word' in request.POST:
             word_form = WordForm(request.POST)
             if word_form.is_valid():
-                a = WordAnalyzer(word_form.cleaned_data['word'])
-                request.session['result'] = {
-                    'word': a.word,
-                    'tonicity': a.word_stress(),
-                    'syl_word': a.get_syllables(),
-                    'num_letters': a.count_letters(),
-                    'num_phonemes': a.count_phonemes(),
-                    'vow_clusters': a.vowel_clusters(),
-                    'reversed': a.syllables_backwards(),
-                    'num_syllables': a.count_syllables(),
-                    'con_clusters': a.consonant_clusters(),
-                }
+                try:
+                    analysis_result = asyncio.run(get_word_analysis_data(word_form.cleaned_data['word']))
+                    request.session['result'] = analysis_result
+                except Exception as e:
+                    word_form.add_error('word', ValidationError("Ocorreu um erro ao analisar a palavra. Tente novamente."))
+                    request.session['error_messages'] = word_form.errors.get('word')
             else:
                 request.session['error_messages'] = word_form.errors.get('word')
             return redirect('main-view')
@@ -45,7 +65,7 @@ def main_view(request):
             feedback_form = FeedbackForm(request.POST)
             if feedback_form.is_valid():
                 feedback_text = feedback_form.cleaned_data['feedback']
-                send_mail (
+                send_mail(
                     subject='Feedback - Divisor de Sílabas',
                     message=feedback_text,
                     from_email=settings.EMAIL_HOST_USER,

@@ -1,7 +1,7 @@
-from . import find_nth
-import requests, unicodedata
+from typing import Any
 from bs4 import BeautifulSoup
 from urllib.parse import quote
+import asyncio, httpx, unicodedata
 
 
 class WordAnalyzer():
@@ -18,57 +18,62 @@ class WordAnalyzer():
             'con': ['b', 'c', 'ç', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm',
                     'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'],
             'dig': ['ch', 'lh', 'nh', 'rr', 'ss', 'sç', 'xs', 'sc', 'xc', 'gu', 'qu']
-        }; self.word = word.lower().strip()
+        }; self.word: str = word.lower().strip()
 
         # Formatted Query Word
         nfkd_form = unicodedata.normalize('NFKD', self.word)
         self.query_word = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
 
-        # Referred Page Content
-        self.response = requests.get(f'https://www.dicio.com.br/{quote(self.query_word)}/',
-                                     headers={'User-Agent': 'Mozilla/5.0'})
+        # Word Data Initialization
+        self.response: Any = None
+        self._fetched: bool = False
+        self.syl_list: list[str] = []
+        self._word_exists_on_dicio: Any = None
 
-        # Special Search Cases
-        if self.response.status_code == 200 and ('ç' in self.word or \
-        any(e for e in self.ALPHABET['vow'] if e not in ['a', 'e', 'i', 'o', 'u'] and e in self.word)):
-            soup = BeautifulSoup(self.response.content, 'html.parser')
-            page_title = soup.find('h1'); n: int = 2; max_attempts: int = 5
+    async def _fetch_data(self) -> None:
+        """Fetches and parses the word data from `dicio.com.br` asynchronously."""
+        if self._fetched:
+            return
 
-            while page_title and page_title.text.strip().lower() != self.word and n <= max_attempts:
-                response = requests.get (
-                    f'https://www.dicio.com.br/{quote(self.query_word)}-{n}/',
-                    headers={'User-Agent': 'Mozilla/5.0'}
-                )
+        async with httpx.AsyncClient(headers={'User-Agent': 'Mozilla/5.0'}) as client:
+            self.response = await client.get(f'https://www.dicio.com.br/{quote(self.query_word)}/')
 
-                if response.status_code != 200:
-                    break
+            # Special Search Cases (accents or "ç")
+            if self.response.status_code == 200 and ('ç' in self.word or \
+            any(e for e in self.ALPHABET['vow'] if e not in ['a', 'e', 'i', 'o', 'u'] and e in self.word)):
+                soup = BeautifulSoup(self.response.content, 'html.parser'); page_title = soup.find('h1')
+                if page_title and page_title.text.strip().lower() != self.word:
+                    tasks = [client.get(f'https://www.dicio.com.br/{quote(self.query_word)}-{n}/') for n in range(2, 6)]
+                    responses = await asyncio.gather(*tasks)
+                    for res in responses:
+                        if res.status_code == 200:
+                            soup = BeautifulSoup(res.content, 'html.parser'); page_title = soup.find('h1')
+                            if page_title and page_title.text.strip().lower() == self.word:
+                                self.response = res; break
 
-                self.response = response; soup = BeautifulSoup (
-                    self.response.content, 'html.parser'
-                ); page_title = soup.find('h1'); n += 1
+        if self.response.status_code != 200:
+            self._word_exists_on_dicio = False
+        else:
+            soup = BeautifulSoup(self.response.content, 'html.parser'); h1_tag = soup.find('h1')
+            if h1_tag and h1_tag.text == "Não encontrada":
+                self._word_exists_on_dicio = False
+            else:
+                self._word_exists_on_dicio = True
+                syllables_str = self._parse_syllables_from_soup(soup)
+                self.syl_list = syllables_str.split('-') if syllables_str else []
 
-        # Syllables of the User-Supplied Word
-        self.syl_list = self.get_syllables().split('-')
+        self._fetched = True
 
-    def word_exists(self) -> bool:
+    async def word_exists(self) -> bool:
         """Checks if a word exists by consulting `www.dicio.com.br`.
 
         Returns:
             bool: True if the word is found, False otherwise.
         """
-        if self.response.status_code != 200:
-            return False
+        await self._fetch_data()
+        return self._word_exists_on_dicio or False
 
-        soup = BeautifulSoup (
-            self.response.content, 'html.parser'
-        ); h1_tag = soup.find('h1')
-
-        if h1_tag and h1_tag.text == "Não encontrada":
-            return False
-
-        return True
-
-    def get_syllables(self) -> str:
+    async def get_syllables(self) -> str:
         """Gets the syllables of a word by scraping `www.dicio.com.br`.
 
         Returns:
@@ -76,16 +81,31 @@ class WordAnalyzer():
             word if found, otherwise an empty string.
         """
         try:
-            if self.word_exists():
-                soup = BeautifulSoup(self.response.content, 'html.parser')
-                for p_tag in soup.find_all('p', class_='adicional'):
-                    if 'Separação silábica:' in p_tag.text:
-                        for b_tag in p_tag.find_all_next('b'):
-                            syllables = b_tag.text.replace('-', '').lower().strip()
-                            if syllables == self.word.replace('-', ''):
-                                return b_tag.text
-        except requests.exceptions.RequestException:
-            return ''
+            await self._fetch_data()
+            return '-'.join(self.syl_list)
+
+        except httpx.RequestError:
+            pass
+
+        return ''
+
+    def _parse_syllables_from_soup(self, soup: BeautifulSoup) -> str:
+        """Internal helper to extract syllables from a BeautifulSoup object.
+        
+        Args:
+            soup (BeautifulSoup): Contains content page from the searched HTML.
+        
+        Returns:
+            str: Contains the syllables of the user-supplied
+            word if found, otherwise an empty string.
+        """
+        for p_tag in soup.find_all('p', class_='adicional'):
+            if 'Separação silábica:' in p_tag.text:
+                for b_tag in p_tag.find_all_next('b'):
+                    syllables = b_tag.text.replace('-', '').lower().strip()
+                    if syllables == self.word.replace('-', ''):
+                        return b_tag.text.strip()
+
         return ''
 
     def count_letters(self) -> dict[str, int]:
@@ -127,7 +147,7 @@ class WordAnalyzer():
                     phonemes -= qnt; digraphs.append(d) if d not in digraphs else None
                 else:
                     for n in range(0, qnt):
-                        p = find_nth(self.word, d, n)
+                        p = self._find_nth(self.word, d, n)
                         if self.word[p+2] in ['e', 'i']:
                             phonemes -= 1; digraphs.append(d) if d not in digraphs else None
 
@@ -143,7 +163,7 @@ class WordAnalyzer():
             if ks in self.word:
                 qnt = self.word.count(ks)
                 for n in range(0, qnt):
-                    p = find_nth(self.word, ks, n)
+                    p = self._find_nth(self.word, ks, n)
                     if self.word[p+2] in self.ALPHABET['vow'] or self.word[p+2] == '':
                         phonemes += 1
 
@@ -271,3 +291,13 @@ class WordAnalyzer():
             str: Contains the reversed syllables.
         """
         return '-'.join(list(reversed(self.syl_list)))
+
+    def _find_nth(self, haystack: str, needle: str, n: int) -> int:
+        """Source - https://stackoverflow.com/a  
+        Posted by Todd Gamblin, modified by community. See post 'Timeline' for change history  
+        Retrieved 2025-11-11, License - CC BY-SA 4.0"""
+
+        start = haystack.find(needle)
+        while start >= 0 and n > 1:
+            start = haystack.find(needle, start+len(needle)); n -= 1
+        return start

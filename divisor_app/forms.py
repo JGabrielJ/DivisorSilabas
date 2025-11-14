@@ -1,3 +1,4 @@
+import asyncio
 from django import forms
 from django.conf import settings
 from .analyzer import WordAnalyzer
@@ -43,12 +44,12 @@ class WordForm(forms.Form):
             raise forms.ValidationError("Por favor, digite apenas letras!")
 
         try:
-            if not a.word_exists():
+            if not asyncio.run(a.word_exists()):
                 raise forms.ValidationError(f"A palavra \"{a.word.upper()}\" não foi encontrada. " \
                                             +"Verifique se ela foi digitada corretamente ou " \
                                             +"se existe no dicionário brasileiro.")
         except Exception as e:
-            print(f"Erro ao verificar a existência da palavra: {e}")
+            print(f"Erro assíncrono ao verificar a existência da palavra: {e}")
             raise forms.ValidationError("Não foi possível verificar a palavra no momento. Tente novamente mais tarde.")
 
         return a.word
