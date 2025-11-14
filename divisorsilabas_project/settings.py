@@ -15,10 +15,6 @@ import dj_database_url
 from pathlib import Path
 
 
-if os.path.isfile('.env'):
-    from dotenv import load_dotenv
-    load_dotenv()
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,16 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', default='skey')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = [
-    '127.0.0.1', 'localhost', '0.0.0.0',
-    'divisor-de-silabas.onrender.com',
-]
+ALLOWED_HOSTS = []
 
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 
@@ -86,7 +82,7 @@ WSGI_APPLICATION = 'divisorsilabas_project.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres:postgres@localhost:5432/mysite',
+        default='postgresql://postgres:postgres@localhost:5432/divisorsilabas',
         conn_max_age=600
     )
 }
@@ -150,8 +146,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
 # Customizable configs
 RESTRICTED_WORDS_FILE = BASE_DIR / 'rotten.txt'
@@ -162,6 +158,6 @@ try:
     with open(EASTER_EGGS_FILE, 'r', encoding='utf-8') as f:
         EASTER_EGGS = json.load(f)
 except FileNotFoundError:
-    print(f"Arquivo não encontrado em {EASTER_EGGS_FILE}. A lista estará vazia.")
+    print(f"Arquivo não encontrado em {EASTER_EGGS_FILE}.")
 except json.JSONDecodeError:
-    print(f"Erro ao decodificar o arquivo em {EASTER_EGGS_FILE}. Verifique se o JSON é válido.")
+    print(f"Erro ao decodificar o arquivo em {EASTER_EGGS_FILE}.")
