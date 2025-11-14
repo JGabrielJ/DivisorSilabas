@@ -43,10 +43,14 @@ class WordForm(forms.Form):
         if not a.word.isalpha() and '-' not in a.word:
             raise forms.ValidationError("Por favor, digite apenas letras!")
 
-        if not a.word_exists():
-            raise forms.ValidationError(f"A palavra \"{a.word.upper()}\" não foi encontrada. " \
-                                        +"Verifique se ela foi digitada corretamente ou " \
-                                        +"se existe no dicionário brasileiro.")
+        try:
+            if not a.word_exists():
+                raise forms.ValidationError(f"A palavra \"{a.word.upper()}\" não foi encontrada. " \
+                                            +"Verifique se ela foi digitada corretamente ou " \
+                                            +"se existe no dicionário brasileiro.")
+        except Exception as e:
+            print(f"Erro ao verificar a existência da palavra: {e}")
+            raise forms.ValidationError("Não foi possível verificar a palavra no momento. Tente novamente mais tarde.")
 
         return a.word
 
