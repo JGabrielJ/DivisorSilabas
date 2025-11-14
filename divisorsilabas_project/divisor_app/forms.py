@@ -24,7 +24,7 @@ class WordForm(forms.Form):
         """Verifies different cases for the user-supplied word.
 
         Raises:
-            Http404: If a bad word is found, raises a 404 page.
+            forms.ValidationError: If a bad word is found, raises an angry message.
             forms.ValidationError: If a easter egg is found, raises a message.
             forms.ValidationError: If the word is not alphabetical, raises a message.
             forms.ValidationError: If the word not exists in the dictionary, raises a message.
@@ -35,7 +35,7 @@ class WordForm(forms.Form):
         a = WordAnalyzer(self.cleaned_data['word'])
 
         if profanity.contains_profanity(a.word):
-            raise Http404("Tome cuidado com o que sai da sua boca (*_*)")
+            raise forms.ValidationError("Tome cuidado com o que sai da sua boca (*_*)")
 
         if a.word in settings.EASTER_EGGS.keys():
             raise forms.ValidationError(settings.EASTER_EGGS[a.word])
