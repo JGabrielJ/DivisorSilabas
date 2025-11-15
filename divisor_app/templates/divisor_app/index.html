@@ -21,12 +21,13 @@
             body {
                 font-weight: 400;
                 font-style: normal;
+                font-optical-sizing: auto;
                 background-color: #0A2239;
                 font-family: "Bodoni Moda", serif;
             }
 
             .container {
-                max-width: 750px;
+                max-width: 850px;
             }
 
             .card {
@@ -98,8 +99,8 @@
 
                 <hr class="my-4" style="color: #00FF00;"/>
 
-                <!-- Feedback Sending -->
-                <form method="post">
+                <!-- Feedback Sending (local) -->
+                <!-- <form method="post">
                     {% csrf_token %}
                     {{ feedback_form.as_p }}
                     <button type="submit" name="submit_feedback" class="btn btn-secondary w-100">Enviar relatório</button>
@@ -108,10 +109,23 @@
                     <div class="alert alert-success mt-3 text-center" role="alert">
                         {{ feedback_success }}
                     </div>
-                {% endif %}
+                {% endif %} -->
+
+                <!-- Feedback Sending (remote) -->
+                <!-- Comment out the <div> below if you're running it locally!!! -->
+                <div class="text-center">
+                    <p>
+                        Críticas, problemas na busca ou erros na separação das sílabas? Envie-nos um e-mail descrevendo
+                        a sua situação! Pedimos que forneça o máximo de detalhes para que possamos resolver sua questão o
+                        mais rápido possível. Esteja ciente de que a análise não é perfeita e que pode apresentar falhas.
+                    </p>
+                    <a href="mailto:{{ feedback_email }}?subject=Feedback%20-%20Divisor%20de%20S%C3%ADlabas" class="btn btn-secondary w-100">
+                        Enviar relatório por e-mail
+                    </a>
+                </div>
 
                 <footer class="card-footer text-center pt-4">
-                    Copyright © 2025 <a href="https://github.com/JGabrielJ" target="_blank">João Gabriel</a>. Todos os direitos reservados.
+                    Copyright © 2025 <a href="https://github.com/JGabrielJ" target="_blank" rel="noopener noreferrer">João Gabriel</a>. Todos os direitos reservados.
                 </footer>
             </div>
         </div>

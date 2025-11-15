@@ -55,10 +55,10 @@ class WordForm(forms.Form):
         return a.word
 
 
-class FeedbackForm(forms.Form):
-    feedback = forms.CharField (
-        label='Críticas, problemas na busca ou erros na divisão? Use o campo abaixo para falar conosco! ' \
-             +'Pedimos que forneça o máximo de detalhes para que possamos resolver o mais breve possível. ' \
-             +'Esteja ciente de que a análise não é perfeita e que pode apresentar falhas.',
-        max_length=100000, widget=forms.Textarea(attrs={'class': 'form-control mt-2', 'rows': 4})
-    )
+# class FeedbackForm(forms.Form):
+#     feedback = forms.CharField (
+#         label='Críticas, problemas na busca ou erros na divisão? Use o campo abaixo para falar conosco! ' \
+#              +'Pedimos que forneça o máximo de detalhes para que possamos resolver o mais breve possível. ' \
+#              +'Esteja ciente de que a análise não é perfeita e que pode apresentar falhas.',
+#         max_length=100000, widget=forms.Textarea(attrs={'class': 'form-control mt-2', 'rows': 4})
+#     )

@@ -136,11 +136,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# WhiteNoise
+# https://whitenoise.readthedocs.io/
+
 if not DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-    # WhiteNoise
-    # https://whitenoise.readthedocs.io/
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # New folder 'static'
@@ -154,16 +155,20 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+# ↳ If you're running locally, replace the EMAIL_HOST_USER and the
+# EMAIL_HOST_PASSWORD with your credentials or create a .env file with them
 
 # Customizable configs
 RESTRICTED_WORDS_FILE = BASE_DIR / 'rotten.txt'
 EASTER_EGGS_FILE = BASE_DIR / 'secrets.json'
+FEEDBACK_EMAIL = os.environ.get('FEEDBACK_EMAIL')
 
 EASTER_EGGS = {}
 try:
