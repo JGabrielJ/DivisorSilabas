@@ -13,7 +13,6 @@ import os
 import json
 import dj_database_url
 from pathlib import Path
-from dotenv import load_dotenv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,6 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = 'RENDER' not in os.environ
 
 if DEBUG:
+    from dotenv import load_dotenv
     load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
