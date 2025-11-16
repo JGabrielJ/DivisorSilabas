@@ -166,9 +166,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # EMAIL_HOST_PASSWORD with your credentials or create a .env file with them
 
 # Customizable configs
-RESTRICTED_WORDS_FILE = BASE_DIR / 'rotten.txt'
-EASTER_EGGS_FILE = BASE_DIR / 'secrets.json'
 FEEDBACK_EMAIL = os.environ.get('FEEDBACK_EMAIL')
+
+if not DEBUG:
+    RESTRICTED_WORDS_FILE = BASE_DIR / 'rotten.txt'
+    EASTER_EGGS_FILE = BASE_DIR / 'secrets.json'
+else:
+    RESTRICTED_WORDS_FILE = BASE_DIR / 'eggs-dev/rotten.txt'
+    EASTER_EGGS_FILE = BASE_DIR / 'eggs-dev/secrets.json'
 
 EASTER_EGGS = {}
 try:
