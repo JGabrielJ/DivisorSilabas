@@ -72,8 +72,6 @@ cover/
 *.mo
 
 # Django stuff:
-rotten.txt
-secrets.json
 requirements.in
 requirements-dev.in
 

@@ -172,8 +172,9 @@ if not DEBUG:
     RESTRICTED_WORDS_FILE = BASE_DIR / 'rotten.txt'
     EASTER_EGGS_FILE = BASE_DIR / 'secrets.json'
 else:
-    RESTRICTED_WORDS_FILE = BASE_DIR / 'eggs-dev/rotten.txt'
-    EASTER_EGGS_FILE = BASE_DIR / 'eggs-dev/secrets.json'
+    EGGS_DEV_DIR = BASE_DIR / 'eggs-dev'
+    RESTRICTED_WORDS_FILE = EGGS_DEV_DIR / 'rotten.txt'
+    EASTER_EGGS_FILE = EGGS_DEV_DIR / 'secrets.json'
 
 EASTER_EGGS = {}
 try:
